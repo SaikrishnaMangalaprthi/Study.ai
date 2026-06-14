@@ -32,10 +32,15 @@ export default function Login({ onLogin }) {
         });
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("user_name", data.name || form.email);
+        if (api.defaults && api.defaults.headers) {
+          api.defaults.headers.common["Authorization"] = `Bearer ${data.access_token}`;
+        }
         onLogin(data.name || form.email);
       }
     } catch (err) {
-      setError(err.response?.data?.msg || "Something went wrong");
+      const detail = err.response?.data?.detail;
+      const errorMessage = Array.isArray(detail) ? detail[0].msg : detail;
+      setError(errorMessage || err.response?.data?.msg || "Something went wrong");
     } finally {
       setLoading(false);
     }
