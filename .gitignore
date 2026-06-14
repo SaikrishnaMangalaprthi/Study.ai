@@ -1,0 +1,20 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+instance/app.db
+
+# Environment variables
+.env
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# Build folders
+dist/
+build/
+
+# VS Code
+.vscode/
