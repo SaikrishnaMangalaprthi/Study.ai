@@ -99,8 +99,6 @@ export default function StudyTimer() {
         setSecondsLeft((prev) => {
           if (prev <= 1) {
             clearInterval(intervalRef.current);
-            setIsRunning(false);
-            handleTimerComplete();
             return 0;
           }
           return prev - 1;
@@ -113,6 +111,14 @@ export default function StudyTimer() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isRunning]);
+
+  // Handle completion safety monitoring outside of state modifier threads
+  useEffect(() => {
+    if (secondsLeft === 0 && isRunning) {
+      setIsRunning(false);
+      handleTimerComplete();
+    }
+  }, [secondsLeft, isRunning]);
 
   async function handleTimerComplete() {
     // Notify user
@@ -310,7 +316,7 @@ export default function StudyTimer() {
         </div>
       </div>
 
-      {/* Forest/TickTick inspired focus guidelines card */}
+      {/* Focus guidelines card */}
       <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-sm text-gray-400 space-y-3">
         <h3 className="font-semibold text-gray-200">How to use:</h3>
         <ol className="list-decimal pl-5 space-y-1.5">

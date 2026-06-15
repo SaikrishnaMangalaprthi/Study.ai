@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ..models import db, Habit, User, HabitCheckIn
+from ..models import db, Habit, User, HabitCheckIn,Notification
 from datetime import datetime, date as dt_date, timedelta
 
 bp = Blueprint('habits', __name__)

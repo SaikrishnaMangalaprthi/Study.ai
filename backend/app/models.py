@@ -167,7 +167,8 @@ class Reminder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200))
     remind_at = db.Column(db.DateTime)
-    repeat = db.Column(db.Enum("Daily", "Weekly", "Monthly", "Custom"))
+    # Appended "None" to the db.Enum constraints list to handle repeat cancellations cleanly
+    repeat = db.Column(db.Enum("None", "Daily", "Weekly", "Monthly", "Custom"), default="None")
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
 class Exam(db.Model):

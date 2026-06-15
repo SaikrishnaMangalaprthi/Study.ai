@@ -56,20 +56,33 @@ def create_score():
 @bp.route('/<int:score_id>', methods=['PUT'])
 @jwt_required()
 def update_score(score_id):
-    data = request.get_json()
-    score = db.get_or_404(Score, score_id)
+    user = _get_user(get_jwt_identity())
+    if not user:
+        return jsonify({'msg': 'User not found'}), 404
+        
+    data = request.get_json() or {}
+    # Enforce score ownership lookup check
+    score = Score.query.filter_by(id=score_id, user_id=user.id).first_or_404()
+    
     for field in ['exam_name', 'subject', 'obtained', 'total']:
         if field in data:
             setattr(score, field, data[field])
     if 'date' in data:
         score.date = _parse_date(data['date'])
+        
     db.session.commit()
     return jsonify({'msg': 'Score updated'}), 200
 
 @bp.route('/<int:score_id>', methods=['DELETE'])
 @jwt_required()
 def delete_score(score_id):
-    score = db.get_or_404(Score, score_id)
+    user = _get_user(get_jwt_identity())
+    if not user:
+        return jsonify({'msg': 'User not found'}), 404
+        
+    # Enforce score ownership lookup check
+    score = Score.query.filter_by(id=score_id, user_id=user.id).first_or_404()
+    
     db.session.delete(score)
     db.session.commit()
     return jsonify({'msg': 'Score deleted'}), 200

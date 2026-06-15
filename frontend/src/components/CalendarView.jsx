@@ -147,7 +147,8 @@ export default function CalendarView() {
   };
 
   // Week View Details
-  const getStartOfWeek = (d) => {
+  const getStartOfWeek = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+  const getStartOfMonth = (d) =>{
     const day = d.getDay();
     const diff = d.getDate() - day; // adjust when day is sunday
     return new Date(d.setDate(diff));

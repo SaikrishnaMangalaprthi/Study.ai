@@ -60,6 +60,9 @@ def end_session(session_id):
         
     db.session.commit()
     
+    # Initialize xp_gain to safely expose it outside the if-scope block
+    xp_gain = 0
+    
     # Calculate duration in minutes and award XP
     if session.start_time and session.end_time:
         duration_minutes = (session.end_time - session.start_time).total_seconds() / 60.0
@@ -78,7 +81,8 @@ def end_session(session_id):
                 db.session.add(notif)
             db.session.commit()
             
-    return jsonify({'msg': 'Session ended', 'xp_earned': xp_gain if 'xp_gain' in locals() else 0}), 200
+    return jsonify({'msg': 'Session ended', 'xp_earned': xp_gain}), 200
+
 
 @bp.route('/<int:session_id>', methods=['DELETE'])
 @jwt_required()
@@ -154,13 +158,13 @@ def focus_stats():
         return jsonify({'msg': 'User not found'}), 404
         
     today = dt_date.today()
-    start_of_week = today - timedelta(days=today.weekday())
-    start_of_month = today.replace(day=1)
+    # Convert today's date into a valid full datetime timestamp for exact database column parsing
+    today_start = datetime.combine(today, datetime.min.time())
     
     # General session hours
     sessions_today = StudySession.query.filter(
         StudySession.user_id == user.id,
-        StudySession.start_time >= today
+        StudySession.start_time >= today_start
     ).all()
     
     study_hours_today = 0.0
@@ -171,7 +175,7 @@ def focus_stats():
     # Pomodoro session hours
     pomodoros_today = PomodoroSession.query.filter(
         PomodoroSession.user_id == user.id,
-        PomodoroSession.created_at >= today,
+        PomodoroSession.created_at >= today_start,
         PomodoroSession.completed == True
     ).all()
     study_hours_today += sum(p.duration for p in pomodoros_today) / 60.0
@@ -179,3 +183,5 @@ def focus_stats():
     return jsonify({
         'study_hours_today': round(study_hours_today, 1),
     }), 200
+
+    

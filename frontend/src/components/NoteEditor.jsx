@@ -163,27 +163,26 @@ export default function NoteEditor() {
     }
   }
 
-  // Basic Markdown compiler
-  const compileMarkdown = (text) => {
-    if (!text) return "";
-    let html = text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-    
-    // Bold, headers, code, breaks
-    html = html.replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold border-b border-white/10 pb-1 mt-4 mb-2 text-white">$1</h1>');
-    html = html.replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mt-3 mb-2 text-white">$1</h2>');
-    html = html.replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold mt-2 mb-1 text-white">$1</h3>');
-    html = html.replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>');
-    html = html.replace(/\*(.*)\*/gim, '<em>$1</em>');
-    html = html.replace(/`(.*)`/gim, '<code class="bg-black/50 px-1 py-0.5 rounded font-mono text-xs text-pink-300">$1</code>');
-    html = html.replace(/^\s*-\s+(.*$)/gim, '<li class="ml-4 list-disc">$1</li>');
-    html = html.replace(/^\s*\*\s+(.*$)/gim, '<li class="ml-4 list-disc">$1</li>');
-    html = html.replace(/\n/gim, "<br/>");
-    return html;
-  };
+const renderMarkdown = (text) => {
+  if (!text) return '';
+  
+  // Step 1: Force escape primary HTML injection vectors first
+  let escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 
+  // Step 2: Inject explicit typography decoration anchors safely
+  escaped = escaped.replace(/### (.*?)(\n|$)/g, '<h3 class="text-lg font-bold mt-2">$1</h3>');
+  escaped = escaped.replace(/## (.*?)(\n|$)/g, '<h2 class="text-xl font-bold mt-3">$2</h2>');
+  escaped = escaped.replace(/# (.*?)(\n|$)/g, '<h1 class="text-2xl font-bold mt-4">$1</h1>');
+  escaped = escaped.replace(/\*\*(.*?)\*\//g, '<strong>$1</strong>');
+  escaped = escaped.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  escaped = escaped.replace(/`(.*?)`/g, '<code class="bg-gray-100 p-1 rounded font-mono">$1</code>');
+  escaped = escaped.replace(/\n/g, '<br />');
+
+  return escaped;
+};
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[550px]">
       {/* LEFT PANEL: LIST OF NOTES (Cols 1-4) */}

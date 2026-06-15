@@ -48,32 +48,24 @@ export default function TaskList() {
 
   const formatDate = (date) => date.toISOString().split("T")[0];
 
-  const applyPreset = (preset) => {
-    const nextDate = new Date();
-    const values = {
-      focus: {
-        priority: "High",
-        status: "In Progress",
-        recurrence: "Daily",
-        due_date: formatDate(new Date(nextDate.setDate(nextDate.getDate() + 1)))
-      },
-      review: {
-        priority: "Medium",
-        status: "Pending",
-        recurrence: "Weekly",
-        due_date: formatDate(new Date(nextDate.setDate(nextDate.getDate() + 7)))
-      },
-      backlog: {
-        priority: "Low",
-        status: "Pending",
-        recurrence: "None",
-        due_date: ""
-      }
-    };
-
-    setForm((prev) => ({ ...prev, ...values[preset] }));
-    setPresetTag(preset);
+const applyPreset = (presetType) => {
+  const getOffsetDate = (daysOffset) => {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + daysOffset);
+    return formatDate(targetDate);
   };
+
+  const values = {
+    focus: { due_date: getOffsetDate(1) },
+    review: { due_date: getOffsetDate(7) },
+    project: { due_date: getOffsetDate(30) }
+  };
+
+  const selectedValues = values[presetType];
+  if (selectedValues) {
+    setFormValues(prev => ({ ...prev, ...selectedValues }));
+  }
+};
 
   useEffect(() => {
     loadData();

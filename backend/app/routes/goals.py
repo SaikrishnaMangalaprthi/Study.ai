@@ -53,11 +53,17 @@ def create_goal():
     db.session.add(goal)
     user.goals.append(goal)
     
-    # Optional initial milestones
+    # Support both structural dictionary milestones and raw string payloads safely
     milestones_data = data.get('milestones', [])
-    for m_title in milestones_data:
-        if isinstance(m_title, str) and m_title.strip():
-            m = Milestone(title=m_title.strip(), completed=False, goal=goal)
+    for m_data in milestones_data:
+        m_title = None
+        if isinstance(m_data, str):
+            m_title = m_data.strip()
+        elif isinstance(m_data, dict) and 'title' in m_data:
+            m_title = m_data['title'].strip()
+            
+        if m_title:
+            m = Milestone(title=m_title, completed=False, goal=goal)
             db.session.add(m)
             
     db.session.commit()

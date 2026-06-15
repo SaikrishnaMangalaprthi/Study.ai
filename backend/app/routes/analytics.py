@@ -111,13 +111,25 @@ def get_analytics_summary():
                 
         for date_str, count in habit_dates.items():
             pct = round((count / total_habits) * 100)
-            habit_consistency.append({'date': date_str, 'percentage': pct})
+            # Add week_label and percent aliases for seamless Dashboard rendering
+            day_short = datetime.strptime(date_str, '%Y-%m-%d').strftime('%a')
+            habit_consistency.append({
+                'date': date_str, 
+                'week_label': day_short,
+                'percentage': pct,
+                'percent': pct
+            })
     else:
         for date_str in habit_dates:
-            habit_consistency.append({'date': date_str, 'percentage': 0})
+            day_short = datetime.strptime(date_str, '%Y-%m-%d').strftime('%a')
+            habit_consistency.append({
+                'date': date_str, 
+                'week_label': day_short,
+                'percentage': 0,
+                'percent': 0
+            })
             
     # 5. Productivity score
-    # Calculated from task completion %, average study hours (target 2h/day), habit consistency %
     task_comp_rate = (task_stats['completed'] / max(task_stats['total'], 1)) * 100
     avg_study_hours = sum(study_hours_by_day.values()) / max(days, 1)
     study_target_rate = min((avg_study_hours / 2.0) * 100, 100) # 2 hours daily focus target
@@ -130,13 +142,25 @@ def get_analytics_summary():
         (avg_habit_rate * 0.2)
     )
     
+    # Format study_hours_trend to include 'day_short' label mapping
+    formatted_study_hours = [
+        {
+            'date': k, 
+            'day_short': datetime.strptime(k, '%Y-%m-%d').strftime('%a'), 
+            'hours': v
+        } 
+        for k, v in study_hours_by_day.items()
+    ]
+    
     return jsonify({
         'productivity_score': productivity_score,
-        'study_hours_trend': [{'date': k, 'hours': v} for k, v in study_hours_by_day.items()],
+        'study_hours_trend': formatted_study_hours,
         'task_stats': task_stats,
         'subject_performance': subject_performance,
         'habit_consistency': habit_consistency,
         'weak_subjects': weak_subjects,
+        'xp_total': user.xp_points,
+        'today_study_hours': round(study_hours_by_day.get(today.isoformat(), 0.0), 1),
         'focus_summary': {
             'total_study_hours': round(sum(study_hours_by_day.values()), 1),
             'avg_daily_hours': round(avg_study_hours, 1),
