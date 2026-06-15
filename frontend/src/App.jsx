@@ -68,7 +68,14 @@ function App() {
       document.documentElement.classList.remove("dark");
     }
   }, []);
-
+const savedColor = localStorage.getItem("user_theme_color");
+if (savedColor) {
+  const colorMap = {
+    blue: "#3B82F6", green: "#10B981",
+    red: "#EF4444", purple: "#8B5CF6", pink: "#EC4899"
+  };
+  document.documentElement.style.setProperty("--color-primary", colorMap[savedColor] || "#3B82F6");
+}
   // Handle global authentication state
   useEffect(() => {
     // 1. Listen for the custom "auth-expired" event

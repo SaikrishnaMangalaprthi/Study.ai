@@ -43,3 +43,25 @@ def me():
     if not user:
         return jsonify({'msg': 'not found'}), 404
     return jsonify(id=user.id, email=user.email, name=user.name), 200
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
+
+# In /login, also return a refresh token:
+@bp.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+    user = User.query.filter_by(email=email).first()
+    if not user or not check_password_hash(user.password_hash, password):
+        return jsonify({"msg": "bad credentials"}), 401
+    access_token = create_access_token(identity=email)
+    refresh_token = create_refresh_token(identity=email)   # ADD THIS
+    return jsonify(access_token=access_token, refresh_token=refresh_token, name=user.name), 200
+
+# Add new route:
+@bp.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    identity = get_jwt_identity()
+    new_access = create_access_token(identity=identity)
+    return jsonify(access=new_access), 200

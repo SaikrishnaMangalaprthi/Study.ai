@@ -12,7 +12,9 @@ export default function Reminders() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
+  const [editId, setEditId] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editRemindAt, setEditRemindAt] = useState("");
   useEffect(() => {
     loadReminders();
   }, []);
@@ -68,7 +70,18 @@ export default function Reminders() {
       setError("Could not delete reminder.");
     }
   }
-
+async function handleEdit(id) {
+  try {
+    await api.put(`/reminders/${id}`, {
+      title: editTitle.trim(),
+      remind_at: editRemindAt || null,
+    });
+    setEditId(null);
+    loadReminders();
+  } catch {
+    setError("Could not update reminder.");
+  }
+}
   return (
     <div className="space-y-6">
       <div>
@@ -160,20 +173,70 @@ export default function Reminders() {
             <div className="space-y-4">
               {reminders.map((item) => (
                 <div key={item.id} className="rounded-3xl border border-white/10 bg-black/20 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-gray-100">{item.title}</p>
-                      <p className="text-[11px] text-gray-400 mt-1">
-                        {item.remind_at ? new Date(item.remind_at).toLocaleString() : "No time set"}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="rounded-full border border-white/10 px-2 py-1 text-xs text-red-300 hover:bg-red-500/10 transition"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  {editId === item.id ? (
+  <div className="space-y-3">
+    <input
+      value={editTitle}
+      onChange={(e) => setEditTitle(e.target.value)}
+      className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-gray-100"
+    />
+
+    <input
+      type="datetime-local"
+      value={editRemindAt}
+      onChange={(e) => setEditRemindAt(e.target.value)}
+      className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-gray-100"
+    />
+
+    <div className="flex gap-2">
+      <button
+        onClick={() => handleEdit(item.id)}
+        className="flex-1 py-1.5 bg-primary text-white text-xs font-bold rounded-lg"
+      >
+        Save
+      </button>
+
+      <button
+        onClick={() => setEditId(null)}
+        className="px-3 py-1.5 bg-white/10 text-gray-300 text-xs rounded-lg"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+) : (
+  <div className="flex items-start justify-between gap-3">
+    <div>
+      <p className="font-semibold text-gray-100">{item.title}</p>
+
+      <p className="text-[11px] text-gray-400 mt-1">
+        {item.remind_at
+          ? new Date(item.remind_at).toLocaleString()
+          : "No time set"}
+      </p>
+    </div>
+
+    <div className="flex gap-2">
+      <button
+        onClick={() => {
+          setEditId(item.id);
+          setEditTitle(item.title);
+          setEditRemindAt(item.remind_at?.slice(0, 16) || "");
+        }}
+        className="rounded-full border border-white/10 px-2 py-1 text-xs text-blue-300 hover:bg-blue-500/10 transition"
+      >
+        Edit
+      </button>
+
+      <button
+        onClick={() => handleDelete(item.id)}
+        className="rounded-full border border-white/10 px-2 py-1 text-xs text-red-300 hover:bg-red-500/10 transition"
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+)}
                   {item.repeat && item.repeat !== "None" && (
                     <span className="mt-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-[10px] text-primary">
                       {item.repeat}

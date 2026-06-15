@@ -119,6 +119,10 @@ export default function Dashboard() {
   const [hasDashboardData, setHasDashboardData] = useState(false);
   const [loading, setLoading] = useState(false);
 
+const [plannerRes] = await Promise.allSettled([api.get("/ai_planner/recommendations")]);
+const planner = plannerRes.status === "fulfilled" ? plannerRes.value.data : null;
+
+
   useEffect(() => {
     async function loadDashboard() {
       setLoading(true);
@@ -313,10 +317,16 @@ export default function Dashboard() {
               <div className="rounded-[18px] bg-slate-900/90 p-5">
                 <p className="text-sm font-semibold text-white">Smart guidance</p>
                 <ul className="mt-4 space-y-3 text-sm text-slate-300">
-                  <li>• 3 tasks due today</li>
-                  <li>• 1 upcoming major exam</li>
-                  <li>• Habit consistency at 92%</li>
-                </ul>
+  {planner?.recommendations?.slice(0, 3).map((r, i) => (
+    <li key={i}>• {r.message}</li>
+  )) || (
+    <>
+      <li>• 3 tasks due today</li>
+      <li>• 1 upcoming major exam</li>
+      <li>• Habit consistency at 92%</li>
+    </>
+  )}
+</ul>
               </div>
             </div>
           </div>

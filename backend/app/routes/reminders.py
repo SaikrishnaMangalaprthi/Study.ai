@@ -81,3 +81,19 @@ def delete_reminder(reminder_id):
     db.session.delete(reminder)
     db.session.commit()
     return jsonify({'msg': 'Reminder deleted'}), 200
+@bp.route('/<int:reminder_id>', methods=['PUT'])
+@jwt_required()
+def update_reminder(reminder_id):
+    user = _get_user(get_jwt_identity())
+    if not user:
+        return jsonify({'msg': 'User not found'}), 404
+    reminder = Reminder.query.filter_by(id=reminder_id, user_id=user.id).first_or_404()
+    data = request.get_json() or {}
+    if 'title' in data:
+        reminder.title = data['title']
+    if 'remind_at' in data:
+        reminder.remind_at = datetime.fromisoformat(data['remind_at']) if data['remind_at'] else None
+    if 'repeat' in data:
+        reminder.repeat = data['repeat']
+    db.session.commit()
+    return jsonify({'msg': 'Reminder updated'}), 200

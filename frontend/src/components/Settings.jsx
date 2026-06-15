@@ -14,6 +14,18 @@ export default function Settings() {
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
+  const applyThemeColor = (color) => {
+  const colorMap = {
+    blue:   "#3B82F6",
+    green:  "#10B981",
+    red:    "#EF4444",
+    purple: "#8B5CF6",
+    pink:   "#EC4899",
+  };
+  const hex = colorMap[color] || colorMap.blue;
+  document.documentElement.style.setProperty("--color-primary", hex);
+  localStorage.setItem("user_theme_color", color);
+};
   const handleToggleDarkMode = (checked) => {
     setIsDarkMode(checked);
     const root = document.documentElement;
@@ -74,10 +86,14 @@ export default function Settings() {
     } finally {
       setLoading(false);
     }
+    setThemeColor(res.data.theme_color || "blue");
+    applyThemeColor(res.data.theme_color || "blue");
   }
 
   async function handleSaveProfile(e) {
     e.preventDefault();
+    applyThemeColor(themeColor);
+    
     if (!name.trim()) {
       setErrorMsg("Name cannot be blank.");
       return;

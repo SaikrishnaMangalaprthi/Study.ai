@@ -13,17 +13,18 @@ def list_notifications():
     user = _get_user(get_jwt_identity())
     if not user:
         return jsonify({'msg': 'User not found'}), 404
-        
+
     limit = request.args.get('limit', default=50, type=int)
     offset = request.args.get('offset', default=0, type=int)
-    
-    # Query notifications ordered by created_at desc
-    notifications = Notification.query.filter_by(user_id=user.id)\
-        .order_by(Notification.created_at.desc())\
-        .limit(limit).offset(offset).all()
-        
+    category = request.args.get('category', default=None)
+
+    query = Notification.query.filter_by(user_id=user.id)
+    if category:
+        query = query.filter_by(category=category)
+
+    notifications = query.order_by(Notification.created_at.desc()).limit(limit).offset(offset).all()
     unread_count = Notification.query.filter_by(user_id=user.id, is_read=False).count()
-        
+
     return jsonify({
         'notifications': [{
             'id': n.id,
